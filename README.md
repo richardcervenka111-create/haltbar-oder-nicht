@@ -1,6 +1,6 @@
 # Haltbar oder nicht?
 
-Das Mindesthaltbarkeitsdatum ist kein Wegwerfdatum. 40 Lebensmittel, der Test aus der Profiküche (schauen, riechen, Wassertest beim Ei, Deckel bei der Konserve) und die klare Grenze dort, wo sie sein muss: Verbrauchsdatum bei Fleisch, Fisch, Geflügel, Sprossen. DE/EN/SK, Suche, Kategorien, kein Tracking.
+Das Mindesthaltbarkeitsdatum ist kein Wegwerfdatum. 40 Lebensmittel, der Test aus der Profiküche (schauen, riechen, Wassertest beim Ei, Deckel bei der Konserve) und die klare Grenze dort, wo sie sein muss: Verbrauchsdatum bei Fleisch, Fisch, Geflügel, Sprossen. DE/EN, Suche, Kategorien, kein Tracking.
 
 Live: **https://richardcervenka111-create.github.io/haltbar-oder-nicht/**
 
