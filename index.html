@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haltbar oder nicht?</title>
+<meta name="description" content="Mindesthaltbarkeitsdatum ist kein Wegwerfdatum. 40 Lebensmittel, der Profi-Test aus der Küche, wann es wirklich weg muss. Kein Tracking.">
+<style>
+:root{--bg:#1a1410;--card:#26201a;--line:#3b3129;--txt:#f5efe8;--mut:#b8a898;--ok:#7ee2a8;--warn:#f2c14e;--bad:#ff7b6b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:17px/1.5 -apple-system,system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:24px;margin:8px 0 2px}.sub{color:var(--mut);font-size:14px;margin-bottom:12px}
+.lang{float:right}.lang button{background:none;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:4px 8px;font-size:13px;cursor:pointer}.lang button[aria-pressed="true"]{background:var(--ok);color:#062;border-color:var(--ok)}
+.rule{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.rule div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.rule b{display:block;font-size:15px}.rule span{font-size:14px;color:var(--mut)}
+.rule .mhd b{color:var(--ok)}.rule .vd b{color:var(--bad)}
+input{width:100%;font-size:17px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);margin:8px 0 12px}
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cats button{background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer;min-height:36px}
+.cats button[aria-pressed="true"]{background:var(--ok);color:#062;border-color:var(--ok);font-weight:600}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:8px 0;overflow:hidden}
+summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;gap:10px;align-items:center;font-weight:600}
+summary::-webkit-details-marker{display:none}
+.tag{margin-left:auto;font-size:12px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.t-ok{background:var(--ok);color:#062}.t-warn{background:var(--warn);color:#432}.t-bad{background:var(--bad);color:#fff}
+.body{padding:0 14px 14px;font-size:15px}.body p{margin:6px 0}.body b{color:var(--warn)}
+.foot{color:var(--mut);font-size:13px;margin-top:26px;border-top:1px solid var(--line);padding-top:10px}.foot a{color:var(--ok)}
+</style>
+</head>
+<body>
+<main>
+<div class="lang" role="group"><button data-l="de" aria-pressed="true">DE</button><button data-l="en" aria-pressed="false">EN</button><button data-l="sk" aria-pressed="false">SK</button></div>
+<h1 id="h"></h1>
+<div class="sub" id="s"></div>
+<div class="rule"><div class="mhd"><b id="r1"></b><span id="r1s"></span></div><div class="vd"><b id="r2"></b><span id="r2s"></span></div></div>
+<input id="q" type="search" autocomplete="off">
+<div class="cats" id="cats"></div>
+<div id="list"></div>
+<div class="foot" id="foot"></div>
+</main>
+<script>
+(function(){
+// level: ok = MHD ist Orientierung, Sinne entscheiden · warn = kurz nach Datum mit Test · bad = Verbrauchsdatum, danach weg
+const D=[
+ ["milch","Milch (pasteurisiert)","Milk (pasteurised)","Mlieko (pasterizované)","ok","Riechen, dann kleiner Schluck. Sauer ist sauer, das riecht man sofort. Ungeöffnet oft 3–5 Tage über MHD, geöffnet 3 Tage. Sauer gewordene Milch: nicht trinken, aber für Pfannkuchenteig noch brauchbar, wenn sie nur säuerlich riecht und nicht bitter."],
+ ["joghurt","Joghurt","Yoghurt","Jogurt","ok","Ungeöffnet meist 1–2 Wochen über MHD. Deckel gewölbt = weg. Wasser oben ist normal (Molke), umrühren. Schimmel oder Hefe-Geruch (wie Bier) = weg."],
+ ["butter","Butter","Butter","Maslo","ok","Wochen über MHD im Kühlschrank, Monate im Gefrierer. Ranzig riecht wie alte Nüsse; dann nur die äussere Schicht abschneiden reicht nicht, weg."],
+ ["hartkaese","Hartkäse (Gruyère, Sbrinz, Emmentaler)","Hard cheese","Tvrdý syr","ok","Schimmelstelle grosszügig (2 cm) wegschneiden, Rest ist gut. Weiss-trockene Kristalle sind Salz und Reifung, kein Problem. Geöffnet in Papier, nicht in Plastik."],
+ ["weichkaese","Weichkäse, Frischkäse, Hüttenkäse","Soft cheese, cream cheese","Mäkký syr, tvaroh","warn","Bei Schimmel, der nicht zur Sorte gehört: ganz weg, er wächst im feuchten Käse durch. Ammoniak-Geruch bei Camembert = überreif, weg. Frischkäse geöffnet 5–7 Tage."],
+ ["eier","Eier","Eggs","Vajcia","warn","Wassertest: liegt = frisch, steht = älter (roh nicht mehr, durchgegart gut), schwimmt = weg. MHD ist 28 Tage nach Legen; danach nur noch durchgegart (kein Spiegelei, kein Tiramisu). Im Kühlschrank, nicht in der Tür."],
+ ["rohesfleisch","Rohes Fleisch (Rind, Schwein, Lamm)","Raw meat","Surové mäso","bad","Verbrauchsdatum, keine Toleranz. Klebrig, grau-grün, süsslich-fauliger Geruch = weg, auch vor dem Datum. Rind darf aussen dunkel sein (Sauerstoff), das ist keine Warnung. Vakuumverpackt: nach dem Öffnen 5 Minuten lüften, säuerlicher Geruch verschwindet dann; bleibt er, weg."],
+ ["haehnchen","Geflügel roh","Raw poultry","Surová hydina","bad","Verbrauchsdatum, null Toleranz. Salmonellen und Campylobacter riechen nicht. Kühlkette einhalten, am Kauftag oder am Folgetag kochen, sonst einfrieren. Nie waschen (spritzt Keime durch die Küche), direkt in die Pfanne, Kerntemperatur 72 °C."],
+ ["hackfleisch","Hackfleisch","Minced meat","Mleté mäso","bad","Grösste Oberfläche, schnellster Verderb. Am Kauftag verarbeiten, Verbrauchsdatum ist die absolute Grenze. Grau innen ist normal (kein Sauerstoff), grau-braun mit Geruch nicht."],
+ ["fisch","Fisch roh","Raw fish","Surová ryba","bad","Riecht frischer Fisch nach Fisch, ist er nicht frisch; er riecht nach Meer oder nach nichts. Augen klar, Kiemen rot, Fleisch federt zurück. Verbrauchsdatum, keine Toleranz, am Kauftag essen."],
+ ["wurst","Aufschnitt, Wurst, Schinken","Cold cuts","Údeniny, šunka","warn","Geöffnet 3–4 Tage. Schmierig, grau, milchig-glänzend oder säuerlich = weg. Geräucherte Rohwurst (Salami) hält Wochen, weisser Trockenschimmel aussen ist normal."],
+ ["speck","Speck, Rohschinken","Bacon, cured ham","Slanina, sušená šunka","ok","Gepökelt und getrocknet: Wochen im Kühlschrank. Grün schimmernd ist Lichtbrechung durch Salz, kein Verderb. Erst schmierig oder ranzig = weg."],
+ ["tofu","Tofu","Tofu","Tofu","warn","Geöffnet in Wasser, täglich wechseln, 3–5 Tage. Schleimig oder sauer = weg. Ungeöffnet 1–2 Wochen über MHD."],
+ ["brot","Brot","Bread","Chlieb","ok","Kein Datum nötig, die Nase reicht. Schimmel: bei Brot komplett weg, die Fäden sind unsichtbar durch den ganzen Laib. Hart ist nicht kaputt: Ofen 5 Minuten mit Wasser, oder Croûtons, Paniermehl, Brotsuppe."],
+ ["mehl","Mehl, Griess, Polenta","Flour","Múka","ok","Jahre über MHD, trocken gelagert. Vollkorn wird ranzig (riecht muffig-bitter). Motten: Gespinste, kleine Larven, dann weg und Schrank leeren."],
+ ["reis","Reis, Teigwaren trocken","Rice, dry pasta","Ryža, sušené cestoviny","ok","Praktisch unbegrenzt. Gekochter Reis dagegen: innert 1 Stunde kühlen, max. 1 Tag im Kühlschrank (Bacillus cereus überlebt das Kochen). Beim Aufwärmen dampfend heiss."],
+ ["konserven","Konserven","Canned food","Konzervy","ok","Jahre über MHD. Gewölbter Deckel, zischt beim Öffnen, Beule an der Naht: weg, ohne Probieren (Botulismus). Geöffnet umfüllen, 2–3 Tage."],
+ ["ketchup","Ketchup, Senf, Mayonnaise","Ketchup, mustard, mayonnaise","Kečup, horčica, majonéza","ok","Ketchup und Senf: Monate über MHD, auch geöffnet (Säure, Salz). Mayonnaise geöffnet 1–2 Monate kühl; selbstgemachte mit rohem Ei: 1–2 Tage, weg bei Zweifel."],
+ ["oel","Öl","Oil","Olej","ok","Ranzig riecht wie Wachsmalstifte oder alte Nüsse. Dann weg, es schmeckt bitter und ist nicht mehr gesund. Dunkel und kühl lagern verdoppelt die Zeit."],
+ ["gewuerze","Gewürze, Kräuter getrocknet","Spices, dried herbs","Koreniny","ok","Werden nicht schlecht, nur schwach. Hand darüber reiben: kein Duft mehr = doppelte Menge oder neu kaufen."],
+ ["honig","Honig, Zucker, Salz","Honey, sugar, salt","Med, cukor, soľ","ok","Unbegrenzt. Kristallisierter Honig: Glas in warmes Wasser stellen. Das MHD auf Honig ist eine gesetzliche Formalität."],
+ ["kaffee","Kaffee, Tee","Coffee, tea","Káva, čaj","ok","Verliert Aroma, wird nicht schlecht. Bohnen 4 Wochen nach dem Öffnen am besten, danach flach. Tee jahrelang, nur schwächer."],
+ ["schokolade","Schokolade","Chocolate","Čokoláda","ok","Weisser Belag ist Fettreif (Temperaturwechsel), kein Schimmel, essbar. Monate über MHD. Nur wenn sie muffig riecht (falsch gelagert) weg."],
+ ["nuesse","Nüsse, Samen","Nuts, seeds","Orechy, semienka","warn","Ranzig = bitter, kratzig. Dann weg. Schimmlige Nüsse (Aflatoxin) ganze Packung weg, nicht aussortieren. Kühl und dunkel, im Sommer in den Kühlschrank."],
+ ["tk","Tiefkühlware","Frozen food","Mrazené potraviny","ok","Bei −18 °C wird nichts giftig, nur trocken (Gefrierbrand: weisse, lederige Stellen wegschneiden). Gemüse 12 Monate, Fleisch 6–9, Fisch 3–6, dann nur Qualitätsverlust. Einmal aufgetaut: nicht wieder einfrieren, ausser gekocht."],
+ ["salat","Salat, Blattgemüse","Salad leaves","Šalát, listová zelenina","ok","Welk ist nicht kaputt: 20 Minuten in eiskaltes Wasser. Schleimig, dunkle nasse Stellen, Geruch = weg. Beutelsalat geöffnet 1–2 Tage."],
+ ["gemuese","Gemüse hart (Rüebli, Kabis, Sellerie, Randen)","Root vegetables","Koreňová zelenina","ok","Wochen. Weich und schrumpelig = noch kochbar (Suppe, Ofen), nur nicht mehr roh. Schimmel: bei harten Sorten grosszügig wegschneiden, bei weichen weg."],
+ ["kartoffeln","Kartoffeln","Potatoes","Zemiaky","warn","Keime abbrechen, grüne Stellen dick wegschneiden (Solanin). Ganz grün oder weich und faul riechend: weg. Dunkel, kühl, nie im Kühlschrank."],
+ ["tomaten","Tomaten, Beeren, weiches Obst","Tomatoes, berries, soft fruit","Paradajky, bobuľové ovocie","warn","Ein Schimmelpunkt auf einer Beere: diese weg, Rest sofort essen oder kochen. Bei ganzen Schalen mit Schimmel: ganze Schale weg. Überreife Tomaten: Sugo."],
+ ["aepfel","Äpfel, Birnen, Zitrusfrüchte","Apples, pears, citrus","Jablká, hrušky, citrusy","ok","Wochen bis Monate. Runzlig ist gut für Kompott und Kuchen. Braune Fleckchen wegschneiden. Schimmel bei Zitrus: weg, wächst innen weiter."],
+ ["bananen","Bananen","Bananas","Banány","ok","Braun ist reif, nicht kaputt: Bananenbrot, Smoothie, gefroren als Glace. Erst wenn es aus der Schale läuft und gärig riecht, weg."],
+ ["fertigsalat","Fertigsalate, Sandwiches, Sushi","Ready meals, sandwiches, sushi","Hotové šaláty, sendviče, sushi","bad","Verbrauchsdatum, keine Toleranz, gekühlt bleiben. Sushi und alles mit rohem Fisch am Kauftag."],
+ ["reste","Gekochte Reste","Cooked leftovers","Uvarené zvyšky","warn","Innert 2 Stunden in den Kühlschrank, 2–3 Tage, einmal dampfend heiss aufwärmen (nicht nur lauwarm). Reis, Teigwaren, Kartoffeln, Pilze, Spinat: 1 Tag, beim Aufwärmen durchheizen. Bei Zweifel: weg, das riecht man nicht immer."],
+ ["suppe","Suppe, Sauce, Fond","Soup, sauce, stock","Polievka, omáčka, vývar","warn","Gekühlt 3 Tage, aufgekocht wieder 3 Tage, gefroren Monate. Kleine Bläschen und säuerlicher Geruch ohne Aufkochen = gärt, weg."],
+ ["milchalternativ","Hafer-, Soja-, Mandeldrink","Oat, soy, almond drink","Ovsený, sójový nápoj","ok","Ungeöffnet UHT Monate über MHD. Geöffnet 5–7 Tage. Gerinnt im Kaffee = kurz vor Ende, aber noch nicht gefährlich; sauer oder gärig = weg."],
+ ["saft","Fruchtsaft","Juice","Ovocná šťava","ok","Ungeöffnet lange über MHD. Geöffnet 5–7 Tage kühl. Gärt (prickelt, Alkoholgeruch, Flasche bläht): weg."],
+ ["konfituere","Konfitüre","Jam","Džem","ok","Ungeöffnet Jahre. Geöffnet: bei Schimmel das ganze Glas weg, die Sporen sind im ganzen Glas, auch wenn nur oben Punkte sind. Immer sauberer Löffel."],
+ ["pilze","Pilze frisch","Fresh mushrooms","Čerstvé huby","warn","3–4 Tage in Papier, nie in Plastik. Schleimig, dunkle nasse Stellen, ammoniakartig = weg. Gekochte Pilze nur 1 Tag."],
+ ["babynahrung","Babynahrung","Baby food","Dojčenská výživa","bad","Datum einhalten, keine Toleranz. Geöffnete Gläschen 1 Tag, nie direkt aus dem Glas füttern und dann aufheben (Speichel)."],
+ ["sprossen","Sprossen, Keimlinge","Sprouts","Klíčky","bad","Feucht und warm gezogen, ideal für Keime. Verbrauchsdatum, für Schwangere, Kleinkinder und Kranke nur gekocht."],
+ ["mehlspeisen","Kuchen, Gebäck mit Creme","Cream cakes and pastries","Koláče s krémom","warn","Mit Creme, Rahm oder Ei: 2 Tage kühl. Trockener Kuchen und Guetzli: Wochen, werden nur hart."],
+];
+const CATS={de:["Alle","Milch & Käse","Fleisch & Fisch","Vorrat","Frisch","Reste"],en:["All","Dairy","Meat & fish","Pantry","Fresh","Leftovers"],sk:["Všetko","Mlieko a syr","Mäso a ryby","Zásoby","Čerstvé","Zvyšky"]};
+const CATMAP={"Milch & Käse":["milch","joghurt","butter","hartkaese","weichkaese","eier","milchalternativ"],"Fleisch & Fisch":["rohesfleisch","haehnchen","hackfleisch","fisch","wurst","speck","tofu","sprossen"],"Vorrat":["mehl","reis","konserven","ketchup","oel","gewuerze","honig","kaffee","schokolade","nuesse","tk","konfituere","saft"],"Frisch":["brot","salat","gemuese","kartoffeln","tomaten","aepfel","bananen","pilze","fertigsalat","babynahrung","mehlspeisen"],"Reste":["reste","suppe","tk"]};
+const L={
+ de:{h:"Haltbar oder nicht?",s:"40 Lebensmittel, der Test aus der Profiküche, und wann es wirklich weg muss. Suchen oder Kategorie wählen.",r1:"Mindestens haltbar bis (MHD)",r1s:"Ein Qualitätsversprechen des Herstellers. Danach: Schauen, riechen, probieren. Der grösste Teil ist noch gut.",r2:"Zu verbrauchen bis",r2s:"Auf Fleisch, Fisch, Geflügel, Sprossen, Fertigsalaten. Danach nicht mehr essen, auch wenn es gut riecht.",q:"Lebensmittel suchen …",ok:"Sinne entscheiden",warn:"Kurz, mit Test",bad:"Datum ist Grenze",
+   foot:'Aus der Berufspraxis eines Kochs, nach den Grundsätzen der Schweizer Lebensmittelgesetzgebung (MHD vs. Verbrauchsdatum) und den Empfehlungen des BLV. Bei Zweifel gilt: weg. Schwangere, Kleinkinder, ältere und kranke Menschen: strenger. Kein Tracking. <a href="https://github.com/richardcervenka111-create/haltbar-oder-nicht">GitHub</a> · MIT'},
+ en:{h:"Still good or not?",s:"40 foods, the professional kitchen test, and when it really has to go. Search or pick a category.",r1:"Best before",r1s:"A quality promise by the producer. After it: look, smell, taste. Most of it is still fine.",r2:"Use by",r2s:"On meat, fish, poultry, sprouts, ready salads. Do not eat after this date, even if it smells fine.",q:"Search food …",ok:"Senses decide",warn:"Briefly, with a test",bad:"Date is the limit",
+   foot:'From a chef’s professional practice, following Swiss food law principles (best-before vs use-by) and FSVO guidance. When in doubt, throw it out. Pregnant, small children, elderly and ill people: stricter. No tracking. <a href="https://github.com/richardcervenka111-create/haltbar-oder-nicht">GitHub</a> · MIT'},
+ sk:{h:"Ešte dobré alebo nie?",s:"40 potravín, test z profesionálnej kuchyne a kedy to naozaj musí preč. Hľadaj alebo vyber kategóriu.",r1:"Minimálna trvanlivosť (MHD)",r1s:"Prísľub kvality od výrobcu. Potom: pozri, ovoňaj, ochutnaj. Väčšina je ešte dobrá.",r2:"Spotrebujte do",r2s:"Na mäse, rybách, hydine, klíčkoch, hotových šalátoch. Po dátume nejesť, aj keď vonia dobre.",q:"Hľadať potravinu …",ok:"Rozhodnú zmysly",warn:"Krátko, s testom",bad:"Dátum je hranica",
+   foot:'Z praxe kuchára, podľa zásad švajčiarskej potravinovej legislatívy (MHD vs. dátum spotreby) a odporúčaní BLV. Pri pochybnosti: preč. Tehotné, malé deti, starší a chorí: prísnejšie. Žiadne sledovanie. <a href="https://github.com/richardcervenka111-create/haltbar-oder-nicht">GitHub</a> · MIT'}};
+let lang="de", cat=0, q="";
+const $=id=>document.getElementById(id); const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const name=x=>x[lang==="de"?1:lang==="en"?2:3];
+function render(){ const T=L[lang]; document.documentElement.lang=lang; document.title=T.h; $("h").textContent=T.h; $("s").textContent=T.s; $("r1").textContent=T.r1; $("r1s").textContent=T.r1s; $("r2").textContent=T.r2; $("r2s").textContent=T.r2s; $("q").placeholder=T.q; $("foot").innerHTML=T.foot;
+  const cs=$("cats"); cs.innerHTML=""; CATS[lang].forEach((c,i)=>{ const b=document.createElement("button"); b.textContent=c; b.setAttribute("aria-pressed",i===cat?"true":"false"); b.onclick=()=>{cat=i; render();}; cs.appendChild(b); });
+  const allowed=cat===0?null:new Set(CATMAP[CATS.de[cat]]); const ql=q.trim().toLowerCase();
+  $("list").innerHTML=D.filter(x=>(!allowed||allowed.has(x[0]))&&(!ql||name(x).toLowerCase().includes(ql)||x[1].toLowerCase().includes(ql))).map(x=>`<details><summary>${esc(name(x))}<span class="tag t-${x[4]}">${esc(T[x[4]])}</span></summary><div class="body"><p>${esc(x[5])}</p></div></details>`).join("")||`<p style="color:var(--mut)">–</p>`;
+  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===lang?"true":"false")); }
+$("q").addEventListener("input",e=>{q=e.target.value; render();});
+document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>{lang=b.dataset.l; render();}));
+render();
+})();
+</script>
+</body>
+</html>
